@@ -1,0 +1,28 @@
+import os ;
+path-constant CWD : . ;
+constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+constant TPL_ROOT : [ os.environ TPL_ROOT ] ;
+constant TURTLE_ROOT : $(TPL_ROOT)/turtle-1.3.2 ;
+
+ECHO "path of BOOST_ROOT is " $(BOOST_ROOT) ;
+ECHO "path of TURTLE_ROOT is " $(TURTLE_ROOT) ;
+
+project
+    :   requirements
+        <debug-symbols>on
+        <cxxflags>-std=c++11
+        <include>$(CWD)/include
+        <include>/3rd/boost_1_79_0
+    :   default-build debug
+        <link>shared
+    :   build-dir bin
+    ;
+
+alias dependencies :
+    ;
+
+exe tcp_server
+    :   [ glob *.cpp : abandoned ]
+        dependencies
+    ;
+

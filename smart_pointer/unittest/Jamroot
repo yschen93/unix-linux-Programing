@@ -1,0 +1,38 @@
+import os ;
+path-constant CWD : . ;
+constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+constant TPL_ROOT : [ os.environ TPL_ROOT ] ;
+constant TURTLE_ROOT : $(TPL_ROOT)/turtle-1.3.2 ;
+constant WORKSPACE : [ os.environ WORKSPACE ] ;
+
+ECHO "path of BOOST_ROOT is " $(BOOST_ROOT) ;
+ECHO "path of TURTLE_ROOT is " $(TURTLE_ROOT) ;
+ECHO "path of WORKSPACE is " $(WORKSPACE) ;
+
+use-project /test_unique_ptr : $(CWD)/code/unique_ptr ;
+use-project /boost : $(BOOST_ROOT) ;
+
+project
+    :   requirements
+        <implicit-dependency>/boost//headers
+        <threading>multi
+        <debug-symbols>on
+        <cxxflags>-std=c++11
+        <cxxflags>-DBOOST_TEST_DYN_LINK
+        <include>$(WORKSPACE)/code/unique_ptr
+        <include>$(BOOST_ROOT)
+        <include>$(TURTLE_ROOT)/include
+    :   default-build debug
+        <link>shared
+    :   build-dir bin
+    ;
+
+alias dependencies :
+        $(BOOST_ROOT)/stage/lib/libboost_unit_test_framework.so
+        /test_unique_ptr//test_unique_ptr
+    ;
+
+exe test_stmart_ptr
+    :   [ glob *.cpp : abandoned ]
+        dependencies
+    ;

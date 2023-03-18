@@ -1,0 +1,11 @@
+
+use-project /unique_ptr : $(WORKSPACE)/code/unique_ptr ;
+
+alias dependencies :  
+        /unique_ptr//unique_ptr
+    ;
+
+lib test_unique_ptr
+    :   [ glob *.cpp : abandoned ]
+        dependencies
+    ;

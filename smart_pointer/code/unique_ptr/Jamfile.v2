@@ -1,0 +1,8 @@
+
+alias dependencies :
+    ;
+
+lib unique_ptr
+    :   [ glob *.cpp : abandoned ]
+        dependencies
+    ;
