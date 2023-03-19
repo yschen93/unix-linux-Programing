@@ -34,6 +34,13 @@ cc::unique_ptr<foo> SomeFunction()
   return cc::unique_ptr<foo>(new foo(120));
 }
 
+void deleter(foo* ptr)
+{
+  std::cout << "call deleter" << std::endl;
+  delete ptr;
+  ptr = nullptr;
+}
+
 BOOST_AUTO_TEST_CASE(t_1)
 {
   foo* p = new foo(10);
@@ -64,6 +71,9 @@ BOOST_AUTO_TEST_CASE(t_1)
   cc::unique_ptr<foo> up5;
   up5 = std::move(up4);
   BOOST_CHECK_EQUAL(up5->show(), 120);
+
+  cc::unique_ptr<foo, decltype(deleter)*> up6(new foo(200), deleter);
+  up6.reset(up5.release());
     
 }
 

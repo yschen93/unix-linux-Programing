@@ -1,18 +1,18 @@
 #include <iostream>
 #include <cassert>
+#include <memory>
 
 using namespace std;
 
 namespace cc
 {   
 
-template<typename Tp>
+template<typename Tp, typename Deleter = std::default_delete<Tp>>
 class unique_ptr
 {
 public:
-    unique_ptr();
+    unique_ptr(Tp* ptr = nullptr, Deleter deleter = Deleter());
     ~unique_ptr();
-    explicit unique_ptr(Tp* ptr);
     unique_ptr(const unique_ptr& rhs) = delete;
     unique_ptr& operator=(const unique_ptr& rhs) = delete;
     unique_ptr(unique_ptr&& rhs) noexcept;
@@ -26,95 +26,82 @@ public:
 
 private:
     Tp* ptr_;
+    Deleter deleter_;
 };
 
-//default constructor
-template<typename Tp>
-unique_ptr<Tp>::unique_ptr()
-    :ptr_(nullptr)
+template<typename Tp, typename Deleter>
+unique_ptr<Tp, Deleter>::unique_ptr(Tp* ptr, Deleter deleter)
+    :ptr_(ptr), deleter_(deleter)
 {
 
 }
 
-
-template<typename Tp>
-unique_ptr<Tp>::unique_ptr(Tp* ptr)
-    :ptr_(ptr)
-{
-
-}
-
-template<typename Tp>
-unique_ptr<Tp>::~unique_ptr()
+template<typename Tp, typename Deleter>
+unique_ptr<Tp, Deleter>::~unique_ptr()
 {
     if (nullptr != ptr_)
     {
-        delete ptr_;
+        deleter_(ptr_);
         ptr_ = nullptr;
     }
 }
 
-template<typename Tp>
-unique_ptr<Tp>::unique_ptr(unique_ptr<Tp>&& rhs) noexcept
+template<typename Tp, typename Deleter>
+unique_ptr<Tp, Deleter>::unique_ptr(unique_ptr<Tp, Deleter>&& rhs) noexcept
 {
-    std::cout << "constructor(&&)" << std::endl;
-    ptr_ = rhs.ptr_;
-    rhs.ptr_ = nullptr;
+    ptr_ = rhs.release();
+    deleter_ = std::move(rhs.deleter_);
 }
 
-template<typename Tp>
-unique_ptr<Tp>& unique_ptr<Tp>::operator=(unique_ptr<Tp>&& rhs) noexcept
+template<typename Tp, typename Deleter>
+unique_ptr<Tp, Deleter>&
+    unique_ptr<Tp, Deleter>::operator=(unique_ptr<Tp, Deleter>&& rhs) noexcept
 {
-    std::cout << "operator=(&&)" << std::endl;
     if (&rhs == this)
         return *this;
-    delete ptr_;
-    ptr_ = rhs.ptr_;
-    rhs.ptr_ = nullptr;
+    reset(rhs.release());
+    deleter_ = std::move(rhs.deleter_);
+    return *this;
 }
 
-template<typename Tp>
-Tp* unique_ptr<Tp>::get() const
+template<typename Tp, typename Deleter>
+Tp* unique_ptr<Tp, Deleter>::get() const
 {
     return ptr_;
 }
 
-template<typename Tp>
-Tp& unique_ptr<Tp>::operator*()
+template<typename Tp, typename Deleter>
+Tp& unique_ptr<Tp, Deleter>::operator*()
 {
     assert(nullptr != ptr_);
     return *ptr_;
 }
 
-template<typename Tp>
-void unique_ptr<Tp>::reset(Tp* ptr)
+template<typename Tp, typename Deleter>
+void unique_ptr<Tp, Deleter>::reset(Tp* ptr)
 {
     if (nullptr != ptr_)
-        delete ptr_;
+        deleter_(ptr_);
     ptr_ = ptr;
 }
 
-template<typename Tp>
-Tp* unique_ptr<Tp>::release()
+template<typename Tp, typename Deleter>
+Tp* unique_ptr<Tp, Deleter>::release()
 {
-    if (nullptr != ptr_)
-    {
-        Tp* tmp = ptr_;
-        ptr_ = nullptr;
-        return tmp;
-    }
-    return ptr_;
+    Tp* tmp = ptr_;
+    ptr_ = nullptr;
+    return tmp;
 }
 
-template<typename Tp>
-Tp* unique_ptr<Tp>::operator->()
+template<typename Tp, typename Deleter>
+Tp* unique_ptr<Tp, Deleter>::operator->()
 {
     assert(nullptr != ptr_);
     return ptr_;
 }
 
-template<typename Tp>
-unique_ptr<Tp>::operator bool() const
+template<typename Tp, typename Deleter>
+unique_ptr<Tp,Deleter>::operator bool() const
 {
     return nullptr != ptr_;
 }
