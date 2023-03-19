@@ -1,8 +1,6 @@
 #include "unique_ptr.hpp"
 
-using namespace std;
-
-StrBlobPtr StrBlob::begin() const
+namespace cc
 {
-    return StrBlobPtr(*this);
+    
 }

@@ -13,6 +13,7 @@ project
     :   requirements
         <debug-symbols>on
         <cxxflags>-std=c++11
+        <cxxflags>-fno-elide-constructors
         <threading>multi
         <include>$(BOOST_ROOT)
     :   default-build debug
